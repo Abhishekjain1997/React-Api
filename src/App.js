@@ -1,38 +1,43 @@
-import React,{useState} from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import MoviesList from './components/MoviesList';
 import './App.css';
 
 function App() {
-    const[movies,setMovies]=useState([])
-    const[isloading,setIsloading]=useState(false);
-    const[error,Seterror]=useState(null);
+  const [movies, setMovies] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  async function fetchMovieHandler(){
-    setIsloading(true);
-    Seterror(null);
-    try{
-      const response=await fetch('https://swapi.dev/api/films/')
-      if(!response.ok){
-        throw new Error('Something Went Wrong!');
+  const fetchMoviesHandler = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('https://swapi.dev/api/films/');
+      if (!response.ok) {
+        throw new Error('Something went wrong!');
       }
-      const data=await response.json();
-       
 
-        const transformedmovie=data.results.map(movieData=>{
-          return{
-            id:movieData.episode_id,
-            title:movieData.title,
-            openingText:movieData.opening_crawl,
-            releaseDate:movieData.release_date
-          }
-        })
-        setMovies(transformedmovie);
-    } catch(error){
-      Seterror(error.message)
+      const data = await response.json();
+
+      const transformedMovies = data.results.map((movieData) => {
+        return {
+          id: movieData.episode_id,
+          title: movieData.title,
+          openingText: movieData.opening_crawl,
+          releaseDate: movieData.release_date,
+        };
+      });
+      setMovies(transformedMovies);
+    } catch (error) {
+      setError(error.message);
     }
-    setIsloading(false);
-  }
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchMoviesHandler();
+  }, [fetchMoviesHandler]);
+
   let content = <p>Found no movies.</p>;
 
   if (movies.length > 0) {
@@ -43,14 +48,14 @@ function App() {
     content = <p>{error}</p>;
   }
 
-  if (isloading) {
+  if (isLoading) {
     content = <p>Loading...</p>;
   }
 
   return (
     <React.Fragment>
       <section>
-        <button onClick={fetchMovieHandler}>Fetch Movies</button>
+        <button onClick={fetchMoviesHandler}>Fetch Movies</button>
       </section>
       <section>{content}</section>
     </React.Fragment>
